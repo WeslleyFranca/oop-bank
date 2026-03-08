@@ -27,22 +27,23 @@ class Conta:
     try:
       self.saldo += valor
       self.extrato.append(f"Depósito - R${valor:.2f}")
-      print(f"R${valor:.2f} Depositado com sucesso!")
+      return True, f"R${valor:.2f} Depositado com sucesso!"
     except ValueError as e:
-      print(f"Erro: {e}")
+      return False, str(e)
 
   def sacar(self, valor):
     try:
       if valor <= 0:
-        raise ValueError("Valor inválido: deve ser maior que zero!") 
+        raise ValueError("Valor inválido: deve ser maior que zero!")
+       
       if self.__saldo < valor:
         raise ValueError("Saldo insuficiente!")
     
       self.saldo -= valor
       self.extrato.append(f"Saque - R${valor:.2f}")
-      print(f"R${valor:.2f} sacado com sucesso!")
+      return True, f"R${valor:.2f} sacado com sucesso!"
     except ValueError as e:
-      print(f"Error: {e}")
+      return False, str(e)
 
   def obter_extrato(self):
     print("Extrato da conta")
@@ -63,25 +64,18 @@ class ContaCorrente(Conta):
       
       if self.saldo < valor:
         novo_valor = valor - self.saldo
-
-      if novo_valor <= 500:
+        if novo_valor <= self.limite_especial:
           self.limite_especial -= novo_valor
-      else:
-        raise ValueError("Saldo ou Limite Especial insuficiente!")
+          self.saldo += novo_valor
+        else:
+          raise ValueError("Saldo ou Limite Especial insuficiente!")
 
-      if self.limite_especial >= 0:
-        self.saldo += novo_valor
-      else:
-        raise ValueError("Limite Especial insuficiente!")
-      if valor <= self.saldo:
-        self.saldo -= valor
-        print(f"Saque de R${valor:.2f} efetuado!")
-        self.extrato.append(f"Saque - R${valor:.2f}")
-      else:
-        raise ValueError("Saldo insuficiente!")
-      
+      self.saldo -= valor
+      self.extrato.append(f"Saque - R${valor:.2f}")
+      return True, f"Saque de R${valor:.2f} efetuado!"  
+    
     except ValueError as e:
-      print(f"Erro: {e}")
+      return False, str(e)
 
   def obter_extrato(self):
     print("Extrato da conta")
@@ -109,12 +103,13 @@ class ContaPoupanca(Conta):
       self.saldo -= valor
       self.saldo -= self.taxa_saque
       self.extrato.append(f"Saque - R${valor:.2f} | Taxa de Saque: R${self.taxa_saque:.2f}")
-      print(f"R${valor:.2f} sacado com sucesso!")
+      return True, f"R${valor:.2f} sacado com sucesso!"
     except ValueError as e:
-      print(f"Error: {e}")
+      return False, str(e)
 
    
 st.set_page_config(page_title="OOP Bank", page_icon="🏦")
+
 if "conta" not in st.session_state:
   st.session_state.conta = None
 
@@ -147,14 +142,48 @@ if st.session_state.conta is None:
         st.rerun()
 
 else:
+  if "toast" in st.session_state:
+    st.toast(st.session_state.toast[0], icon=st.session_state.toast[1])
+    del st.session_state.toast
   st.subheader(f"Bem vindo(a), {st.session_state.conta.cliente.nome}")
 
   tipo = type(st.session_state.conta).__name__
   if tipo == "ContaCorrente":
     st.markdown(f"**Conta Corrente** | Número: {st.session_state.conta.numero}")
+    st.markdown(f"Limite Cheque Especial: R${st.session_state.conta.limite_especial:.2f}")
   elif tipo == "ContaPoupanca":
     st.markdown(f"**Conta Poupança** | Número: {st.session_state.conta.numero}")
 
+  st.metric(label="Saldo Atual", value=f"R${st.session_state.conta.saldo:.2f}")
+  st.divider()
+
+  col1, col2 = st.columns(2)
+  with col1:
+    st.subheader("Depósito")
+    valor = st.number_input("Valor para depósito", min_value=0.01, step=0.01)
+    if st.button("Depositar"):
+      sucesso, mensagem = st.session_state.conta.depositar(valor)
+      if sucesso:
+        st.session_state.toast = (mensagem, "✅")
+        st.rerun()
+      else:
+        st.session_state.toast = (mensagem, "❌")
+
+  with col2:
+    st.subheader("Saque")
+    valor = st.number_input("Valor para saque", min_value=0.01, step=0.01)
+    if st.button("Sacar"):
+      sucesso, mensagem = st.session_state.conta.sacar(valor)
+      if sucesso:
+        st.session_state.toast = (mensagem, "✅")
+        st.rerun()
+      else:
+        st.session_state.toast = (mensagem, "❌")
+  
+  st.divider()
+
+  if st.button("Sair/Fechar Conta"):
+    st.session_state.conta = None
 
 
 
