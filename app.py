@@ -1,3 +1,5 @@
+import streamlit as st
+
 class Cliente:
   def __init__(self, nome, email):
     self.nome = nome
@@ -110,36 +112,51 @@ class ContaPoupanca(Conta):
       print(f"R${valor:.2f} sacado com sucesso!")
     except ValueError as e:
       print(f"Error: {e}")
+
    
+st.set_page_config(page_title="OOP Bank", page_icon="🏦")
+if "conta" not in st.session_state:
+  st.session_state.conta = None
+
+st.title("💵 OOP Bank")
+if st.session_state.conta is None:
+  st.subheader("Abra sua Conta")
+  with st.form("my_form"):
+    nome = st.text_input("Nome do Cliente")
+    email = st.text_input("Email")
+    num_conta = st.text_input("Número da Conta")
+    tipo_conta = st.selectbox("Tipo de Conta", ["Conta Corrente", "Conta Poupança"])
+    print(tipo_conta)
+
+    submitted = st.form_submit_button("Criar Conta")
+    if submitted:
+      if not nome or len(nome) < 3:
+        st.warning("Nome precisa ter pelo menos 3 letras.")
+      elif not "@" in email:
+        st.warning("Email inválido!")
+      elif not num_conta:
+        st.warning("Número de conta inválido")
+      else:
+        st.success("Conta criada com sucesso!", icon="✅")
+        cliente = Cliente(nome, email)
+        if tipo_conta == "Conta Corrente":
+          conta = ContaCorrente(num_conta, cliente)
+        else:
+          conta = ContaPoupanca(num_conta, cliente)
+        st.session_state.conta = conta
+        st.rerun()
+
+else:
+  st.subheader(f"Bem vindo(a), {st.session_state.conta.cliente.nome}")
+
+  tipo = type(st.session_state.conta).__name__
+  if tipo == "ContaCorrente":
+    st.markdown(f"**Conta Corrente** | Número: {st.session_state.conta.numero}")
+  elif tipo == "ContaPoupanca":
+    st.markdown(f"**Conta Poupança** | Número: {st.session_state.conta.numero}")
 
 
-cliente1 = Cliente("Weslley", "weslley@gmail.com")
-
-conta1 = Conta("1234", cliente1)
-conta_corrente = ContaCorrente("4321", cliente1)
-conta_poupanca = ContaPoupanca("8524", cliente1)
-
-# conta1.depositar(500)
-# conta1.depositar(250)
-# conta1.sacar(250)
-# conta1.sacar(300)
-# conta1.sacar(300)
-# conta1.obter_extrato()
-
-# conta_corrente.depositar(500)
-# conta_corrente.sacar(0)
-# conta_corrente.sacar(250)
-# conta_corrente.sacar(150)
-# conta_corrente.obter_extrato()
-
-conta_poupanca.obter_extrato()
-conta_poupanca.depositar(5000)
-# conta_poupanca.sacar(500)
-conta_poupanca.sacar(3500)
-conta_poupanca.obter_extrato()
 
 
-
-# print(conta1.extrato)
 
 
