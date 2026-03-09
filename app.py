@@ -107,13 +107,14 @@ class ContaPoupanca(Conta):
     except ValueError as e:
       return False, str(e)
 
-   
+# ===========================================STREAMLIT=======================================  
 st.set_page_config(page_title="OOP Bank", page_icon="🏦")
 
 if "conta" not in st.session_state:
   st.session_state.conta = None
 
 st.title("💵 OOP Bank")
+
 if st.session_state.conta is None:
   st.subheader("Abra sua Conta")
   with st.form("my_form"):
@@ -121,7 +122,6 @@ if st.session_state.conta is None:
     email = st.text_input("Email")
     num_conta = st.text_input("Número da Conta")
     tipo_conta = st.selectbox("Tipo de Conta", ["Conta Corrente", "Conta Poupança"])
-    print(tipo_conta)
 
     submitted = st.form_submit_button("Criar Conta")
     if submitted:
@@ -168,6 +168,7 @@ else:
         st.rerun()
       else:
         st.session_state.toast = (mensagem, "❌")
+        st.rerun()
 
   with col2:
     st.subheader("Saque")
@@ -179,11 +180,13 @@ else:
         st.rerun()
       else:
         st.session_state.toast = (mensagem, "❌")
+        st.rerun()
   
   st.divider()
 
   if st.button("Sair/Fechar Conta"):
     st.session_state.conta = None
+    st.rerun()
 
 
 
