@@ -184,6 +184,16 @@ else:
   
   st.divider()
 
+  st.subheader("Extrato de movimentações")
+
+  for i in st.session_state.conta.extrato:
+    if "Depósito" in i:
+      st.markdown(f"<p style='color: green'>{i}</p>", unsafe_allow_html=True)
+    elif "Saque" in i:
+      st.markdown(f"<p style='color: red'>{i}</p>", unsafe_allow_html=True)
+  
+  st.divider()
+
   if st.button("Sair/Fechar Conta"):
     st.session_state.conta = None
     st.rerun()
